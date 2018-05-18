@@ -4,7 +4,10 @@ BASE_DIR := $(shell pwd)
 PYTHON = python
 PROTOC = protoc
 PROTOS_PATH = src
+SCALA_WORK_PATH = scala-package
 PY_WORK_PATH = python-package
+JS_WORK_PATH = js-package
+JS_IMPORT_STYLE = commonjs,binary
 PROTO_FILES := $(shell find src -name '*.proto')
 GRPC_FILES = $(shell find src -name '*_service.proto')
 
@@ -12,7 +15,7 @@ GRPC_FILES = $(shell find src -name '*_service.proto')
 all: scala python
 
 scala:
-	cd scala-package && ./sbt/sbt -Dsbt.override.build.repos=true -Dsbt.repository.config=project/repositories -DappVersion=$(VERSION) +package
+	cd $(SCALA_WORK_PATH) && ./sbt/sbt -Dsbt.override.build.repos=true -Dsbt.repository.config=project/repositories -DappVersion=$(VERSION) +package
 
 python: python_wheel
 
@@ -29,6 +32,11 @@ py_requirements:
 ifeq ($(INSTALL_PY_REQ), true)
 	pip install -r python-package/requirements.txt
 endif
+
+javascript: js_proto
+
+js_proto:
+	$(PROTOC) -I $(PROTOS_PATH) --js_out=import_style=$(JS_IMPORT_STYLE):$(JS_WORK_PATH) $(PROTO_FILES)
 
 test: test-python test-scala
 
